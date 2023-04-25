@@ -1,11 +1,19 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public enum UIName
 {
     LobbyUI,
+}
+
+public enum SceneType
+{
+    Lobby = 0,
+    Battle,
 }
 
 public class UIManager : MonoBehaviour
@@ -56,5 +64,18 @@ public class UIManager : MonoBehaviour
     private void RegisterUI(string name, UIBase ui)
     {
         openingUIList.Add(name, ui);
+    }
+
+    public void ChangeScene(SceneType scene)
+    {
+        var keyList = openingUIList.Keys.ToList();
+        foreach(var key in keyList)
+        {
+            Destroy(openingUIList[key]);
+        }
+
+        openingUIList.Clear();
+
+        SceneManager.LoadScene((int)scene);
     }
 }

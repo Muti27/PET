@@ -9,11 +9,12 @@ using UnityEngine.UI;
 public class LobbyUI : UIBase
 {
     [SerializeField] private Button createBtn;
+    [SerializeField] private Button connectBtn;
+    [SerializeField] private Button battleBtn;
+
     [SerializeField] private GameObject namePopup;
     [SerializeField] private TMP_InputField nameInput;
     [SerializeField] private Button confirmBtn;
-
-    [SerializeField] private Button connectBtn;
 
     [SerializeField] private TextMeshProUGUI connectStateText;
     [SerializeField] private Transform playerListTrans;
@@ -32,6 +33,7 @@ public class LobbyUI : UIBase
         createBtn.onClick.AddListener(OnClickCreate);
         confirmBtn.onClick.AddListener(OnClickConfirmName);
         connectBtn.onClick.AddListener(OnClickConnectLobby);
+        battleBtn.onClick.AddListener(OnClickBattle);
     }
 
     public override void SendMsg(params object[] command)
@@ -42,6 +44,9 @@ public class LobbyUI : UIBase
         {
             case "UpdatePlayerList":
                 UpdatePlayerList((Player[])command[1]);
+                break;
+            case "SetBattle":
+                battleBtn.gameObject.SetActive(true);
                 break;
             case "Open":
                 SetActive(true);
@@ -80,7 +85,7 @@ public class LobbyUI : UIBase
 
     private void OnClickBattle()
     {
-        
+        UIManager.Instance.ChangeScene(SceneType.Battle);
     }
 
     public void UpdatePlayerList(Player[] playerList)

@@ -60,28 +60,16 @@ public class MainController : MonoBehaviourPunCallbacks
 
         if (!PhotonNetwork.InRoom)
         {
-            PhotonNetwork.JoinRandomOrCreateRoom();
+            RoomOptions options = new RoomOptions();
+            options.MaxPlayers = 2;
+
+            PhotonNetwork.JoinRandomOrCreateRoom(roomOptions:options);
         }
     }
 
     public override void OnCreatedRoom()
     {
         Debug.Log($"Create Room Success");
-
-        //playerList = PhotonNetwork.PlayerList;
-        if (playerList == null)
-            playerList = new Dictionary<int, Player>();
-
-        foreach (var player in PhotonNetwork.PlayerList)
-        {
-            Debug.Log($"{player.NickName}");
-            playerList.Add(player.ActorNumber, player);
-        }
-    }
-
-    public override void OnJoinedRoom()
-    {
-        Debug.Log($"Join Room Success");
 
         if (playerList == null)
             playerList = new Dictionary<int, Player>();
@@ -93,6 +81,27 @@ public class MainController : MonoBehaviourPunCallbacks
         }
 
         UpdatePlayerList();
+    }
+
+    public override void OnJoinedRoom()
+    {       
+        Debug.Log($"Join Room {PhotonNetwork.CurrentRoom.Name} Success");
+
+        if (playerList == null)
+            playerList = new Dictionary<int, Player>();
+
+        foreach (var player in PhotonNetwork.PlayerList)
+        {
+            Debug.Log($"{player.NickName}");
+            playerList.Add(player.ActorNumber, player);
+        }
+
+        UpdatePlayerList();
+
+        if (PhotonNetwork.IsMasterClient)
+        {
+            UIManager.Instance.SendMsg(UIName.LobbyUI, "SetBattle");
+        }
     }
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
@@ -120,15 +129,7 @@ public class MainController : MonoBehaviourPunCallbacks
 
     private void OnApplicationQuit()
     {
-        if (PhotonNetwork.InRoom)
-        {
-            PhotonNetwork.LeaveRoom();
-        }
-
-        if (PhotonNetwork.InLobby)
-        {
-            PhotonNetwork.LeaveLobby();
-        }
+        PhotonNetwork.Disconnect();
     }
 }
 
