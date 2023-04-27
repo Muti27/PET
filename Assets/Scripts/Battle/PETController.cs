@@ -2,23 +2,18 @@
 using Photon.Pun;
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using UnityEditor.Playables;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using UnityEngine.Profiling.Memory.Experimental;
 
 [ExecuteInEditMode]
 [RequireComponent(typeof(InputSystem))]
 [RequireComponent(typeof(PlayerInput))]
 public class PETController : MonoBehaviour, IPunObservable
 {
-    private InputSystem input;
-    private PlayerInput playerInput;
-    private PhotonView photonView;
-    private CinemachineVirtualCamera vcamera;    
-    private Animator animator;
+    private PhotonView photonView;                  //Photon連線必要
+    private InputSystem input;                      //輸入系統(可統一)
+    private PlayerInput playerInput;                //新Input系統
+    private CinemachineVirtualCamera vcamera;       //虛擬攝影機    
 
     [SerializeField] private GameObject pet;
     [SerializeField] private Weapon weapon;
@@ -26,14 +21,24 @@ public class PETController : MonoBehaviour, IPunObservable
     [SerializeField] private float moveSpeed = 1.0f;
 
     private PETData petData;
+    private Animator animator;                      //角色動畫
+
+    private bool isDead = false;
     private bool isPlayAnim = false;
+    
     //
     private int animationMove;
     private int animationRoll;
     private int animationAttack;
+    private int animationDead;
 
     private void Awake()
     {
+        if (photonView == null)
+        {
+            photonView = gameObject.GetComponent<PhotonView>();
+        }
+
         if (input == null)
         {
             input = gameObject.GetComponent<InputSystem>();
@@ -42,12 +47,7 @@ public class PETController : MonoBehaviour, IPunObservable
         if (playerInput == null)
         {
             playerInput = gameObject.GetComponent<PlayerInput>();
-            //playerInput.camera = Camera.main;
-        }
-
-        if (photonView == null)
-        {
-            photonView = gameObject.GetComponent<PhotonView>();
+            playerInput.enabled = photonView.IsMine;
         }
 
         if (vcamera == null)
@@ -68,8 +68,11 @@ public class PETController : MonoBehaviour, IPunObservable
     // Update is called once per frame
     void Update()
     {
-        Attack();
-        Roll();
+        if (isDead)
+            return;
+
+        CheckAttack();
+        CheckRolling();
         Look();
         Move();
     }
@@ -79,25 +82,22 @@ public class PETController : MonoBehaviour, IPunObservable
         animationMove = Animator.StringToHash("move");
         animationRoll = Animator.StringToHash("roll");
         animationAttack = Animator.StringToHash("attack");
+        animationDead = Animator.StringToHash("dead");
     }
 
-    private void Attack()
+    private void CheckAttack()
     {
         if (input.isAttack)
         {
             if (PhotonNetwork.OfflineMode)
-            {
-                AttackRPC();
-            }
+                Attack();
             else
-            {
-                photonView.RPC("AttackRPC", RpcTarget.AllViaServer);
-            }
+                photonView.RPC("Attack", RpcTarget.AllViaServer);
         }
     }
 
     [PunRPC]
-    public void AttackRPC()
+    public void Attack()
     {
         if (isPlayAnim)
             return;
@@ -115,7 +115,19 @@ public class PETController : MonoBehaviour, IPunObservable
         StartCoroutine(DelayCall(animator.GetCurrentAnimatorStateInfo(0).length, () => { weapon.SetColliderActive(false); isPlayAnim = false; }));
     }
 
-    private void Roll()
+    private void CheckRolling()
+    {
+        if (input.isRolling)
+        {
+            if (PhotonNetwork.OfflineMode)
+                Rolling();
+            else
+                photonView.RPC("Rolling", RpcTarget.AllViaServer);
+        }
+    }
+
+    [PunRPC]
+    private void Rolling()
     {
         if (input.isRolling)
         {
@@ -131,15 +143,14 @@ public class PETController : MonoBehaviour, IPunObservable
     {
         if (input.look != Vector2.zero)
         {
-            var ray = Camera.main.ScreenPointToRay(input.look);
             RaycastHit hit;
+            Ray ray = Camera.main.ScreenPointToRay(input.look);            
             if (Physics.Raycast(ray, out hit))
             {
                 Vector3 lookPosition = hit.point - pet.transform.position;
 
                 pet.transform.rotation = Quaternion.LookRotation(new Vector3(lookPosition.x, 0, lookPosition.z));
             }
-            
         }
     }
 
@@ -159,14 +170,28 @@ public class PETController : MonoBehaviour, IPunObservable
 
     public void OnHit(int damage)
     {
+        if (isDead)
+            return;
+
         petData.HP -= damage;
 
         Debug.Log($"{petData.HP}");
 
         if (petData.HP <= 0)
         {
-            Destroy(gameObject);
+            if (PhotonNetwork.OfflineMode)
+                OnDead();
+            else
+                photonView.RPC("OnDead", RpcTarget.AllViaServer);
         }
+    }
+
+    [PunRPC]
+    private void OnDead()
+    {
+        isDead = true;
+
+        animator.SetBool(animationDead, true);
     }
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
