@@ -185,8 +185,6 @@ public class PETController : MonoBehaviour, IPunObservable
                 param = 0.5f;
                 var vectorCross = Vector3.Cross(new Vector3(lookPosition.x, 0, lookPosition.z).normalized, direction);
 
-                Debug.Log($"{vectorCross}");
-
                 //判斷左右
                 if (vectorCross.y < 0)
                     //animator.SetBool(animationMoveLeft, true);
