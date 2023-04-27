@@ -22,12 +22,16 @@ public class PETController : MonoBehaviour, IPunObservable
 
     private PETData petData;
     private Animator animator;                      //角色動畫
-
+    private Vector3 lookPosition;
     private bool isDead = false;
     private bool isPlayAnim = false;
-    
+    private int currentAnimId;
+
     //
     private int animationMove;
+    private int animationMoveLeft;
+    private int animationMoveRight;
+    private int animationMoveBack;
     private int animationRoll;
     private int animationAttack;
     private int animationDead;
@@ -80,6 +84,10 @@ public class PETController : MonoBehaviour, IPunObservable
     private void SetAnimatorID()
     {
         animationMove = Animator.StringToHash("move");
+        animationMoveLeft = Animator.StringToHash("moveleft");
+        animationMoveRight = Animator.StringToHash("moveright");
+        animationMoveBack = Animator.StringToHash("moveback");
+
         animationRoll = Animator.StringToHash("roll");
         animationAttack = Animator.StringToHash("attack");
         animationDead = Animator.StringToHash("dead");
@@ -100,7 +108,10 @@ public class PETController : MonoBehaviour, IPunObservable
     public void Attack()
     {
         if (isPlayAnim)
+        {
+            input.isAttack = false;
             return;
+        }
 
         Debug.Log($"Attack");
 
@@ -144,10 +155,10 @@ public class PETController : MonoBehaviour, IPunObservable
         if (input.look != Vector2.zero)
         {
             RaycastHit hit;
-            Ray ray = Camera.main.ScreenPointToRay(input.look);            
+            Ray ray = Camera.main.ScreenPointToRay(input.look);
             if (Physics.Raycast(ray, out hit))
             {
-                Vector3 lookPosition = hit.point - pet.transform.position;
+                lookPosition = hit.point - pet.transform.position;
 
                 pet.transform.rotation = Quaternion.LookRotation(new Vector3(lookPosition.x, 0, lookPosition.z));
             }
@@ -158,13 +169,47 @@ public class PETController : MonoBehaviour, IPunObservable
     {
         if (input.move != Vector2.zero)
         {
-            transform.Translate(new Vector3(input.move.x, 0, input.move.y) * moveSpeed * Time.deltaTime);
+            Vector3 direction = new Vector3(input.move.x, 0, input.move.y);
+            float param = 1f;
 
-            animator.SetBool(animationMove, true);
+            float angle = Quaternion.Angle(Quaternion.LookRotation(new Vector3(lookPosition.x, 0, lookPosition.z)), Quaternion.LookRotation(direction));
+            //forward
+            if (angle < 45f)
+            {
+                //animator.SetBool(animationMove, true);
+                ChangeAnimation(animationMove, true);
+            }
+            //left or right
+            else if (angle < 135)
+            {
+                param = 0.5f;
+                var vectorCross = Vector3.Cross(new Vector3(lookPosition.x, 0, lookPosition.z).normalized, direction);
+
+                Debug.Log($"{vectorCross}");
+
+                //判斷左右
+                if (vectorCross.y < 0)
+                    //animator.SetBool(animationMoveLeft, true);
+                    ChangeAnimation(animationMoveLeft, true);
+                else
+                    //animator.SetBool(animationMoveRight, true);
+                    ChangeAnimation(animationMoveRight, true);
+            }
+            //back
+            else
+            {
+                param = 0.5f;
+                ChangeAnimation(animationMoveBack, true);                
+            }
+
+            transform.Translate(direction * moveSpeed * param * Time.deltaTime);
+
+            //Debug.Log($"{angle}");
         }
         else
         {
-            animator.SetBool(animationMove, false);
+            //animator.SetBool(animationMove, false);
+            ChangeAnimation();
         }
     }
 
@@ -213,6 +258,17 @@ public class PETController : MonoBehaviour, IPunObservable
             //this.CurrentSpeed = (float)stream.ReceiveNext();
             //this.m_input = (float)stream.ReceiveNext();
         }
+    }
+
+    private void ChangeAnimation(int animationId = 0, bool active = false)
+    {
+        if (animationId != 0)
+        {
+            animator.SetBool(currentAnimId, false);
+            currentAnimId = animationId;
+        }
+
+        animator.SetBool(currentAnimId, active);
     }
 
     private IEnumerator DelayCall(float time, Action callback)
