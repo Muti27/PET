@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Photon.Pun;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -31,6 +32,17 @@ public class InputSystem : MonoBehaviour
     public void OnAttack(InputValue value)
     {
         isAttack = value.isPressed;
+    }
+
+    public void OnExit(InputValue value)
+    {
+        if (value.isPressed)
+        {
+            if (PhotonNetwork.LeaveRoom())
+            {
+                UIManager.Instance.ChangeScene(SceneType.Lobby);
+            }
+        }
     }
 
     private void OnApplicationFocus(bool hasFocus)

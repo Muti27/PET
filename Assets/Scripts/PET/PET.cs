@@ -23,7 +23,7 @@ public class PET : MonoBehaviour
         transform.localRotation = Quaternion.LookRotation(Camera.main.transform.position);
         transform.localScale = Vector3.one;
 
-        var status = Instantiate(Resources.Load($"PETStatus"), UIManager.Instance.transform) as GameObject;
+        var status = UIManager.Instance.InstaniateAdditionUI($"PETStatus");
         petStatus = status.GetComponent<PETStatus>();
         petStatus.UpdateInfo(petData, petName);
     }

@@ -266,7 +266,8 @@ public class PETController : MonoBehaviour, IPunObservable
             currentAnimId = animationId;
         }
 
-        animator.SetBool(currentAnimId, active);
+        if (currentAnimId != 0)
+            animator.SetBool(currentAnimId, active);
     }
 
     private IEnumerator DelayCall(float time, Action callback)

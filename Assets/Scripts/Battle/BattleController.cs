@@ -57,7 +57,8 @@ public class BattleController : MonoBehaviourPunCallbacks
                 if (!startTimeIsSet)                
                 {
                     Debug.Log("Setting start time");
-                    CountdownTimer.SetStartTime();
+                    //CountdownTimer.SetStartTime();
+                    GameStart();
                 }
             }
             else

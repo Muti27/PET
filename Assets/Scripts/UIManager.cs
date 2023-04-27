@@ -20,21 +20,25 @@ public class UIManager : MonoBehaviour
 {
     public static UIManager Instance { get; private set; }
 
+    private Dictionary<string, UIBase> openingUIList;
+    private List<GameObject> additionalUIList;
+    private short renderIndex = 0;
+
     private void Awake()
     {
         if (Instance != null)
         {
-            Destroy(this);
+            Destroy(this.gameObject);
             return;
         }
 
         Instance = this;
 
         openingUIList = new Dictionary<string, UIBase>();
-    }
+        additionalUIList = new List<GameObject>();
 
-    private Dictionary<string, UIBase> openingUIList;
-    private short renderIndex = 0;
+        DontDestroyOnLoad(this);
+    }
 
     public void SendMsg(UIName name, params object[] command)
     {
@@ -55,7 +59,7 @@ public class UIManager : MonoBehaviour
 
             ui.SendMsg(command);
         }
-        catch(Exception e)
+        catch (Exception e)
         {
             Debug.LogException(e);
         }
@@ -66,15 +70,31 @@ public class UIManager : MonoBehaviour
         openingUIList.Add(name, ui);
     }
 
+    public GameObject InstaniateAdditionUI(string path)
+    {
+        GameObject uiObj = Instantiate(Resources.Load(path), transform) as GameObject;
+
+        additionalUIList.Add(uiObj);
+
+        return uiObj;
+    }
+
     public void ChangeScene(SceneType scene)
     {
         var keyList = openingUIList.Keys.ToList();
-        foreach(var key in keyList)
+        foreach (var key in keyList)
         {
-            Destroy(openingUIList[key]);
+            Destroy(openingUIList[key].gameObject);
         }
 
         openingUIList.Clear();
+
+        foreach (var obj in additionalUIList)
+        {
+            Destroy(obj);
+        }
+
+        additionalUIList.Clear();
 
         SceneManager.LoadScene((int)scene);
     }
