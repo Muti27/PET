@@ -15,13 +15,13 @@ public class InputSystem : MonoBehaviour
 
     public void OnMove(InputValue value)
     {
-        Debug.Log($"{value.Get<Vector2>()}");
+        //Debug.Log($"{value.Get<Vector2>()}");
         move = value.Get<Vector2>();
     }
 
     public void OnLook(InputValue value)
     {
-        Debug.Log($"{value.Get<Vector2>()}");
+        //Debug.Log($"{value.Get<Vector2>()}");
         look = value.Get<Vector2>();
     }
 

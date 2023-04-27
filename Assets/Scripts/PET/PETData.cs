@@ -10,7 +10,7 @@ public class PETData
     private int def;
 
     public int Lv { get { return lv; } }
-    public int HP { get { return hp; } }
+    public int HP { get { return hp; } set { hp = value; } }
     public int Atk { get { return atk; } }
     public int Def { get { return def; } }
 
