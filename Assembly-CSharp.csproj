@@ -67,10 +67,12 @@
     <Compile Include="Assets\Scripts\Battle\BattleController.cs" />
     <Compile Include="Assets\Scripts\Battle\Weapon.cs" />
     <Compile Include="Assets\InputSystem.cs" />
+    <Compile Include="Assets\Scripts\Battle\TestAnim.cs" />
     <Compile Include="Assets\Scripts\LobbyUI.cs" />
     <Compile Include="Assets\Scripts\PlayerEle.cs" />
     <Compile Include="Assets\Scripts\Battle\PETController.cs" />
     <Compile Include="Assets\Scripts\UIManager.cs" />
+    <Compile Include="Assets\Scripts\Battle\BaseEnemyAI.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

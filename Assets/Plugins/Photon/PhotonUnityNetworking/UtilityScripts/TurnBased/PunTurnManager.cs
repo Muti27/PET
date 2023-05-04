@@ -423,7 +423,7 @@ namespace Photon.Pun.UtilityScripts
             string propKey = FinishedTurnPropKey + player.ActorNumber;
             Hashtable finishedTurnProp = new Hashtable();
             finishedTurnProp[propKey] = turn;
-
+             
             room.SetCustomProperties(finishedTurnProp);
         }
     }

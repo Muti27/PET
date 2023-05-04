@@ -26,5 +26,11 @@ public class Weapon : MonoBehaviour
             var hit = other.GetComponent<PETController>();
             hit.OnHit(attack);
         }
+
+        if (other.tag == "Monster")
+        {
+            var hit = other.GetComponent<BaseEnemyAI>();
+            hit.OnHit(attack);
+        }
     }
 }
